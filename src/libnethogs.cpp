@@ -25,8 +25,10 @@ static bool monitor_run_flag = false;
 typedef std::map<void *, NethogsMonitorRecord> NethogsRecordMap;
 static NethogsRecordMap monitor_record_map;
 
-static int monitor_refresh_delay = 1;
-static time_t monitor_last_refresh_time = 0;
+//static int monitor_refresh_delay = 1;
+//static time_t monitor_last_refresh_time = 0;
+static long int monitor_refresh_delay = 10000;
+static __suseconds_t monitor_last_refresh_time = 0;
 
 // selectable file descriptors for the main loop
 static fd_set pc_loop_fd_set;
@@ -59,7 +61,8 @@ static bool wait_for_next_trigger() {
       nfds = std::max(nfds, *it + 1);
       FD_SET(fd, &pc_loop_fd_set);
     }
-    timeval timeout = {monitor_refresh_delay, 0};
+    //timeval timeout = {monitor_refresh_delay, 0};
+    timeval timeout = {0, monitor_refresh_delay};
     if (select(nfds, &pc_loop_fd_set, 0, 0, &timeout) != -1) {
       if (FD_ISSET(self_pipe.first, &pc_loop_fd_set)) {
         return false;
@@ -315,9 +318,13 @@ int nethogsmonitor_loop_devices(NethogsMonitorCallback cb, char *filter,
       current_handle = current_handle->next;
     }
 
-    time_t const now = ::time(NULL);
-    if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
-      monitor_last_refresh_time = now;
+    //time_t const now = ::time(NULL);
+    timeval now;
+    gettimeofday(&now, NULL);
+
+    //if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
+    if (monitor_last_refresh_time + monitor_refresh_delay <= now.tv_usec) {
+      monitor_last_refresh_time = now.tv_usec;
       nethogsmonitor_handle_update(cb);
     }
 
