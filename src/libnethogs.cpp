@@ -376,9 +376,15 @@ int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
       monitor_last_refresh_time = now;
       if (_debug)
       {
-        fprintf(stdout, "starting nethogsmonitor_handle_update\n");
+        fprintf(stdout, "now=%ld, monitor_last_refresh_time=%ld, monitor_refresh_delay=%ld\n", now, monitor_last_refresh_time, monitor_refresh_delay);
       }
       nethogsmonitor_handle_update(cb, pidc, pid_list);
+    }
+    else {
+      if (_debug)
+      {
+        fprintf(stdout, "ELSE >> now=%ld, monitor_last_refresh_time=%ld, monitor_refresh_delay=%ld\n", now, monitor_last_refresh_time, monitor_refresh_delay);
+      }
     }
 
     if (!packets_read) {
