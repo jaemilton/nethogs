@@ -79,7 +79,7 @@ static bool wait_for_next_trigger() {
 
 bool selected(int pidc, int *pid_list, int pid) {
   if (pidc == 0)
-    return false;
+    return true;
 
   for (int i = 0; i < pidc; i++)
     if (pid_list[i] == pid)
