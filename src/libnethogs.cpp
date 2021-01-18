@@ -233,48 +233,51 @@ static void nethogsmonitor_handle_update(NethogsMonitorCallback cb, int pidc, in
       nproc--;
       // continue;
     } else {
-      const u_int32_t uid = curproc->getVal()->getUid();
-      u_int64_t sent_bytes;
-      u_int64_t recv_bytes;
-      float sent_kbs;
-      float recv_kbs;
-      curproc->getVal()->getkbps(&recv_kbs, &sent_kbs);
-      curproc->getVal()->gettotal(&recv_bytes, &sent_bytes);
+      if(selected(pidc, pid_list, curproc->getVal()->pid))
+      {
+        const u_int32_t uid = curproc->getVal()->getUid();
+        u_int64_t sent_bytes;
+        u_int64_t recv_bytes;
+        float sent_kbs;
+        float recv_kbs;
+        curproc->getVal()->getkbps(&recv_kbs, &sent_kbs);
+        curproc->getVal()->gettotal(&recv_bytes, &sent_bytes);
 
-      // notify update
-      bool const new_data =
-          (monitor_record_map.find(curproc) == monitor_record_map.end());
-      NethogsMonitorRecord &data = monitor_record_map[curproc];
+        // notify update
+        bool const new_data =
+            (monitor_record_map.find(curproc) == monitor_record_map.end());
+        NethogsMonitorRecord &data = monitor_record_map[curproc];
 
-      bool data_change = false;
-      if (new_data) {
-        data_change = true;
-        static int record_id = 0;
-        ++record_id;
-        memset(&data, 0, sizeof(data));
-        data.record_id = record_id;
-        data.name = curproc->getVal()->name;
-        data.pid = curproc->getVal()->pid;
-      }
+        bool data_change = false;
+        if (new_data) {
+          data_change = true;
+          static int record_id = 0;
+          ++record_id;
+          memset(&data, 0, sizeof(data));
+          data.record_id = record_id;
+          data.name = curproc->getVal()->name;
+          data.pid = curproc->getVal()->pid;
+        }
 
-      data.device_name = curproc->getVal()->devicename;
+        data.device_name = curproc->getVal()->devicename;
 
-#define NHM_UPDATE_ONE_FIELD(TO, FROM)                                         \
-  if ((TO) != (FROM)) {                                                        \
-    TO = FROM;                                                                 \
-    data_change = true;                                                        \
-  }
+  #define NHM_UPDATE_ONE_FIELD(TO, FROM)                                         \
+    if ((TO) != (FROM)) {                                                        \
+      TO = FROM;                                                                 \
+      data_change = true;                                                        \
+    }
 
-      NHM_UPDATE_ONE_FIELD(data.uid, uid)
-      NHM_UPDATE_ONE_FIELD(data.sent_bytes, sent_bytes)
-      NHM_UPDATE_ONE_FIELD(data.recv_bytes, recv_bytes)
-      NHM_UPDATE_ONE_FIELD(data.sent_kbs, sent_kbs)
-      NHM_UPDATE_ONE_FIELD(data.recv_kbs, recv_kbs)
+        NHM_UPDATE_ONE_FIELD(data.uid, uid)
+        NHM_UPDATE_ONE_FIELD(data.sent_bytes, sent_bytes)
+        NHM_UPDATE_ONE_FIELD(data.recv_bytes, recv_bytes)
+        NHM_UPDATE_ONE_FIELD(data.sent_kbs, sent_kbs)
+        NHM_UPDATE_ONE_FIELD(data.recv_kbs, recv_kbs)
 
-#undef NHM_UPDATE_ONE_FIELD
+  #undef NHM_UPDATE_ONE_FIELD
 
-      if (data_change) {
-        (*cb)(NETHOGS_APP_ACTION_SET, &data);
+        if (data_change) {
+          (*cb)(NETHOGS_APP_ACTION_SET, &data);
+        }
       }
 
       // next
