@@ -11,12 +11,16 @@ extern "C" {
 #define NETHOGS_DSO_VISIBLE __attribute__((visibility("default")))
 #define NETHOGS_DSO_HIDDEN __attribute__((visibility("hidden")))
 
+
 #define NETHOGS_APP_ACTION_SET 1
 #define NETHOGS_APP_ACTION_REMOVE 2
 
 #define NETHOGS_STATUS_OK 0
 #define NETHOGS_STATUS_FAILURE 1
 #define NETHOGS_STATUS_NO_DEVICE 2
+#define ONE_SECOND_IN_MICROSECONDS 1000000
+#define TIMEVAL timeval
+#define TIME_IN_USEC(TIMEVAL) (TIMEVAL.tv_sec * ONE_SECOND_IN_MICROSECONDS + TIMEVAL.tv_usec)
 
 typedef struct NethogsMonitorRecord {
   int record_id;

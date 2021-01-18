@@ -28,8 +28,8 @@ static NethogsRecordMap monitor_record_map;
 //static int monitor_refresh_delay = 1;
 //static time_t monitor_last_refresh_time = 0;
 static bool _debug = false;
-static long monitor_refresh_delay = 50000;
-static __suseconds_t monitor_last_refresh_time = 0;
+static long monitor_refresh_delay_usec = 1000000; //default delay of 1 second
+static timeval monitor_last_refresh_time_usec = {0, 0};
 
 // selectable file descriptors for the main loop
 static fd_set pc_loop_fd_set;
@@ -63,7 +63,7 @@ static bool wait_for_next_trigger() {
       FD_SET(fd, &pc_loop_fd_set);
     }
     //timeval timeout = {monitor_refresh_delay, 0};
-    timeval timeout = {0, monitor_refresh_delay};
+    timeval timeout = {0, monitor_refresh_delay_usec};
     if (select(nfds, &pc_loop_fd_set, 0, 0, &timeout) != -1) {
       if (FD_ISSET(self_pipe.first, &pc_loop_fd_set)) {
         return false;
@@ -332,9 +332,9 @@ int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
   }
   
   if (update_interval_us > 0){
-    monitor_refresh_delay = update_interval_us;
+    monitor_refresh_delay_usec = update_interval_us;
     if (_debug){
-      fprintf(stdout, "Refresh delay = %ld microseconds\n", monitor_refresh_delay);
+      fprintf(stdout, "Refresh delay = %ld microseconds\n", monitor_refresh_delay_usec);
     }
   }
   if (monitor_run_flag) {
@@ -372,14 +372,9 @@ int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
 
     //time_t const now = ::time(NULL);
     gettimeofday(&curtime, NULL);
-    __suseconds_t now = curtime.tv_usec;
-    if (now < monitor_last_refresh_time){
-      now += monitor_last_refresh_time;
-    }
-
     //if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
-    if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
-      monitor_last_refresh_time = curtime.tv_usec;
+    if (TIME_IN_USEC(monitor_last_refresh_time_usec)  + monitor_refresh_delay_usec <= TIME_IN_USEC(curtime)) {
+      monitor_last_refresh_time_usec = curtime;
       nethogsmonitor_handle_update(cb, pidc, pid_list);
     }
    
