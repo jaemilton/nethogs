@@ -370,13 +370,16 @@ int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
     //time_t const now = ::time(NULL);
     gettimeofday(&curtime, NULL);
     __suseconds_t now = curtime.tv_usec;
+    if (now < monitor_last_refresh_time){
+      now += monitor_last_refresh_time;
+    }
 
     //if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
     if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
-      monitor_last_refresh_time = now;
+      monitor_last_refresh_time = curtime.tv_usec;
       if (_debug)
       {
-        fprintf(stdout, "now=%ld, monitor_last_refresh_time=%ld, monitor_refresh_delay=%ld\n", now, monitor_last_refresh_time, monitor_refresh_delay);
+        fprintf(stdout, "now=%ld, monitor_last_refresh_time=%ld, monitor_refresh_delay=%ld, curtime.tv_usec=%ld\n", now, monitor_last_refresh_time, monitor_refresh_delay);
       }
       nethogsmonitor_handle_update(cb, pidc, pid_list);
     }
