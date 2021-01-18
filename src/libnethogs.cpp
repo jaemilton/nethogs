@@ -79,7 +79,7 @@ static bool wait_for_next_trigger() {
 
 bool selected(int pidc, int *pid_list, int pid) {
   if (pidc == 0)
-    return true;
+    return false;
 
   for (int i = 0; i < pidc; i++)
     if (pid_list[i] == pid)
@@ -199,14 +199,16 @@ static void nethogsmonitor_handle_update(NethogsMonitorCallback cb, int pidc, in
     /* remove timed-out processes (unless it's one of the unknown process)
      */
     
-    if ((
-          (curproc->getVal()->getLastPacket() + PROCESSTIMEOUT <=
-            curtime.tv_sec) &&
-          (curproc->getVal() != unknowntcp) &&
-          (curproc->getVal() != unknownudp) && 
-          (curproc->getVal() != unknownip)
-        ) ||
-        !selected(pidc, pid_list, curproc->getVal()->pid)) {
+    if (
+          (
+            (curproc->getVal()->getLastPacket() + PROCESSTIMEOUT <=
+              curtime.tv_sec) &&
+            (curproc->getVal() != unknowntcp) &&
+            (curproc->getVal() != unknownudp) && 
+            (curproc->getVal() != unknownip)
+          ) ||
+          selected(pidc, pid_list, curproc->getVal()->pid)
+        ) {
       if (DEBUG)
         std::cout << "PROC: Deleting process\n";
 
