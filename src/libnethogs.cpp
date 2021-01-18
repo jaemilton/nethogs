@@ -27,6 +27,7 @@ static NethogsRecordMap monitor_record_map;
 
 //static int monitor_refresh_delay = 1;
 //static time_t monitor_last_refresh_time = 0;
+static bool _debug = false;
 static long monitor_refresh_delay = 50000;
 static __suseconds_t monitor_last_refresh_time = 0;
 
@@ -70,6 +71,9 @@ static bool wait_for_next_trigger() {
     }
   } else {
     // If select() not possible, pause to prevent 100%
+    if(_debug){
+      fprintf(stdout, "Waiting %d\n microseconds", 1000);
+    }
     usleep(1000);
   }
   return true;
@@ -103,7 +107,9 @@ static int nethogsmonitor_init(int devc, char **devicenames, bool all,
     }
 
     char errbuf[PCAP_ERRBUF_SIZE];
-    fprintf(stdout, "Packet buffer timeout setted to %d\n", to_ms);
+    if(_debug){
+      fprintf(stdout, "PCap Packet buffer timeout setted to %d\n milliseconds", to_ms);
+    }
     
     dp_handle *newhandle = dp_open_live(current_dev->name, BUFSIZ, promiscuous,
                                         to_ms, filter, errbuf);
@@ -281,12 +287,19 @@ static void nethogsmonitor_clean_up() {
   procclean();
 }
 
-int nethogsmonitor_loop(NethogsMonitorCallback cb, char *filter, int to_ms) {
-    return nethogsmonitor_loop_devices(cb, filter, 0, NULL, false, to_ms);
+int nethogsmonitor_loop(NethogsMonitorCallback cb, char *filter, int to_ms, bool debug, long update_interval_us) {
+    return nethogsmonitor_loop_devices(cb, filter, 0, NULL, false, to_ms, debug, update_interval_us);
 }
 
 int nethogsmonitor_loop_devices(NethogsMonitorCallback cb, char *filter,
-                                int devc, char **devicenames, bool all, int to_ms) {
+                                int devc, char **devicenames, bool all, int to_ms, bool debug, long update_interval_us) {
+  _debug = debug;
+  if (update_interval_us > 0){
+    monitor_refresh_delay = update_interval_us;
+    if (_debug){
+      fprintf(stdout, "Refresh delay = %ld\n microseconds", monitor_refresh_delay);
+    }
+  }
   if (monitor_run_flag) {
     return NETHOGS_STATUS_FAILURE;
   }
@@ -321,12 +334,12 @@ int nethogsmonitor_loop_devices(NethogsMonitorCallback cb, char *filter,
     }
 
     //time_t const now = ::time(NULL);
-    timeval now;
-    gettimeofday(&now, NULL);
+    gettimeofday(&curtime, NULL);
+    __suseconds_t now = curtime.tv_usec;
 
     //if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
-    if (monitor_last_refresh_time + monitor_refresh_delay <= now.tv_usec) {
-      monitor_last_refresh_time = now.tv_usec;
+    if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
+      monitor_last_refresh_time = now;
       nethogsmonitor_handle_update(cb);
     }
 

@@ -63,7 +63,9 @@ typedef void (*NethogsMonitorCallback)(int action,
 
 NETHOGS_DSO_VISIBLE int nethogsmonitor_loop(NethogsMonitorCallback cb,
                                             char *filter,
-                                            int to_ms);
+                                            int to_ms,
+                                            bool debug, 
+                                            long update_interval_us);
 
 /**
  * @brief Enter the process monitoring loop and reports updates using the
@@ -88,7 +90,9 @@ NETHOGS_DSO_VISIBLE int nethogsmonitor_loop_devices(NethogsMonitorCallback cb,
                                                     char *filter, int devc,
                                                     char **devicenames,
                                                     bool all,
-                                                    int to_ms);
+                                                    int to_ms,
+                                                    bool debug, 
+                                                    long update_interval_us);
 
 /**
  * @brief Makes the call to nethogsmonitor_loop return.
