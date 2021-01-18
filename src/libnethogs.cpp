@@ -54,6 +54,7 @@ static std::pair<int, int> create_self_pipe() {
 
 static bool wait_for_next_trigger() {
   if (pc_loop_use_select) {
+    fprintf(stdout, "Waiting %ld microseconds\n", monitor_refresh_delay);
     FD_ZERO(&pc_loop_fd_set);
     int nfds = 0;
     for (std::vector<int>::const_iterator it = pc_loop_fd_list.begin();
@@ -72,7 +73,7 @@ static bool wait_for_next_trigger() {
   } else {
     // If select() not possible, pause to prevent 100%
     if(_debug){
-      fprintf(stdout, "Waiting %d\n microseconds", 1000);
+      fprintf(stdout, "Waiting fixed %d microseconds\n", 1000);
     }
     usleep(1000);
   }
@@ -108,7 +109,7 @@ static int nethogsmonitor_init(int devc, char **devicenames, bool all,
 
     char errbuf[PCAP_ERRBUF_SIZE];
     if(_debug){
-      fprintf(stdout, "PCap Packet buffer timeout setted to %d\n milliseconds", to_ms);
+      fprintf(stdout, "PCap Packet buffer timeout setted to %d milliseconds\n ", to_ms);
     }
     
     dp_handle *newhandle = dp_open_live(current_dev->name, BUFSIZ, promiscuous,
@@ -297,7 +298,7 @@ int nethogsmonitor_loop_devices(NethogsMonitorCallback cb, char *filter,
   if (update_interval_us > 0){
     monitor_refresh_delay = update_interval_us;
     if (_debug){
-      fprintf(stdout, "Refresh delay = %ld\n microseconds", monitor_refresh_delay);
+      fprintf(stdout, "Refresh delay = %ld microseconds\n", monitor_refresh_delay);
     }
   }
   if (monitor_run_flag) {
@@ -344,6 +345,9 @@ int nethogsmonitor_loop_devices(NethogsMonitorCallback cb, char *filter,
     }
 
     if (!packets_read) {
+      if (_debug){
+        fprintf(stdout, "Waiting for next trigger\n");
+      }
       if (!wait_for_next_trigger()) {
         break;
       }
