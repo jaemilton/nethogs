@@ -64,8 +64,36 @@ typedef void (*NethogsMonitorCallback)(int action,
 NETHOGS_DSO_VISIBLE int nethogsmonitor_loop(NethogsMonitorCallback cb,
                                             char *filter,
                                             int to_ms,
-                                            bool debug, 
-                                            long update_interval_us);
+                                            long update_interval_us,
+                                            bool debug);
+
+
+/**
+ * @brief Enter the process monitoring loop and reports updates using the
+ * callback provided as parameter.
+ * This call will block until nethogsmonitor_breakloop() is called or a failure
+ * occurs.
+ * @param cb A pointer to a callback function following the
+ * NethogsMonitorCallback definition
+ * @param filter EXPERIMENTAL: A string (char array) pcap filter to restrict
+ * what packets are captured, or NULL. The filter string format is the same as
+ * that of tcpdump(1); for full details, see the man page for pcap-filter(7).
+ * Note that this is EXPERIMENTAL, and may be removed or changed in a future
+ * version.
+ * @param to_ms: <insert documentation>
+ * @param pidc number of values in pid_list array
+ * @param pid_list pointer to array of pid_list (int arrays)
+ * @param update_interval_us number od microseconds interval between updates
+ * @param debug boolean to set to debug mode
+ */
+
+NETHOGS_DSO_VISIBLE int nethogsmonitor_loop_pids(NethogsMonitorCallback cb,
+                                            char *filter,
+                                            int to_ms,
+                                            int pidc, 
+                                            int *pid_list,
+                                            long update_interval_us,
+                                            bool debug);
 
 /**
  * @brief Enter the process monitoring loop and reports updates using the
@@ -84,6 +112,8 @@ NETHOGS_DSO_VISIBLE int nethogsmonitor_loop(NethogsMonitorCallback cb,
  * @param devicenames pointer to array of devicenames (char arrays)
  * @param all when false, loopback interface and down/not running interfaces
  * will be avoided. When true, find all interfaces including down/not running.
+ * @param update_interval_us number od microseconds interval between updates
+ * @param debug boolean to set to debug mode
  */
 
 NETHOGS_DSO_VISIBLE int nethogsmonitor_loop_devices(NethogsMonitorCallback cb,
@@ -91,8 +121,43 @@ NETHOGS_DSO_VISIBLE int nethogsmonitor_loop_devices(NethogsMonitorCallback cb,
                                                     char **devicenames,
                                                     bool all,
                                                     int to_ms,
-                                                    bool debug, 
-                                                    long update_interval_us);
+                                                    long update_interval_us,
+                                                    bool debug);
+
+                                                    /**
+ * @brief Enter the process monitoring loop and reports updates using the
+ * callback provided as parameter. Specify which network devices to monitor.
+ * All parameters other than cb are passed through to get_devices().
+ * This call will block until nethogsmonitor_breakloop() is called or a failure
+ * occurs.
+ * @param cb A pointer to a callback function following the
+ * NethogsMonitorCallback definition
+ * @param filter EXPERIMENTAL: A string (char array) pcap filter to restrict
+ * what packets are captured, or NULL. The filter string format is the same as
+ * that of tcpdump(1); for full details, see the man page for pcap-filter(7).
+ * Note that this is EXPERIMENTAL, and may be removed or changed in a future
+ * version.
+ * @param devc number of values in devicenames array
+ * @param devicenames pointer to array of devicenames (char arrays)
+ * @param all when false, loopback interface and down/not running interfaces
+ * @param to_ms: <insert documentation>
+ * @param pidc number of values in pid_list array
+ * @param pid_list pointer to array of pid_list (int arrays)
+ * will be avoided. When true, find all interfaces including down/not running.
+ * @param update_interval_us number od microseconds interval between updates
+ * @param debug boolean to set to debug mode
+ */
+
+NETHOGS_DSO_VISIBLE int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb,
+                                                    char *filter, int devc,
+                                                    char **devicenames,
+                                                    bool all,
+                                                    int to_ms,
+                                                    int pidc, 
+                                                    int *pid_list,
+                                                    long update_interval_us,
+                                                    bool debug);
+
 
 /**
  * @brief Makes the call to nethogsmonitor_loop return.

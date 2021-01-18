@@ -54,7 +54,6 @@ static std::pair<int, int> create_self_pipe() {
 
 static bool wait_for_next_trigger() {
   if (pc_loop_use_select) {
-    fprintf(stdout, "Waiting %ld microseconds\n", monitor_refresh_delay);
     FD_ZERO(&pc_loop_fd_set);
     int nfds = 0;
     for (std::vector<int>::const_iterator it = pc_loop_fd_list.begin();
@@ -72,12 +71,21 @@ static bool wait_for_next_trigger() {
     }
   } else {
     // If select() not possible, pause to prevent 100%
-    if(_debug){
-      fprintf(stdout, "Waiting fixed %d microseconds\n", 1000);
-    }
     usleep(1000);
   }
   return true;
+}
+
+
+bool selected(int pidc, int *pid_list, int pid) {
+  if (pidc == 0)
+    return false;
+
+  for (int i = 0; i < pidc; i++)
+    if (pid_list[i] == pid)
+      return true;
+
+  return false;
 }
 
 static int nethogsmonitor_init(int devc, char **devicenames, bool all,
@@ -170,7 +178,9 @@ static int nethogsmonitor_init(int devc, char **devicenames, bool all,
   return NETHOGS_STATUS_OK;
 }
 
-static void nethogsmonitor_handle_update(NethogsMonitorCallback cb) {
+
+
+static void nethogsmonitor_handle_update(NethogsMonitorCallback cb, int pidc, int *pid_list) {
   refreshconninode();
   refreshcount++;
 
@@ -188,10 +198,15 @@ static void nethogsmonitor_handle_update(NethogsMonitorCallback cb) {
 
     /* remove timed-out processes (unless it's one of the unknown process)
      */
-    if ((curproc->getVal()->getLastPacket() + PROCESSTIMEOUT <=
-         curtime.tv_sec) &&
-        (curproc->getVal() != unknowntcp) &&
-        (curproc->getVal() != unknownudp) && (curproc->getVal() != unknownip)) {
+    
+    if ((
+          (curproc->getVal()->getLastPacket() + PROCESSTIMEOUT <=
+            curtime.tv_sec) &&
+          (curproc->getVal() != unknowntcp) &&
+          (curproc->getVal() != unknownudp) && 
+          (curproc->getVal() != unknownip)
+        ) ||
+        !selected(pidc, pid_list, curproc->getVal()->pid)) {
       if (DEBUG)
         std::cout << "PROC: Deleting process\n";
 
@@ -288,12 +303,31 @@ static void nethogsmonitor_clean_up() {
   procclean();
 }
 
-int nethogsmonitor_loop(NethogsMonitorCallback cb, char *filter, int to_ms, bool debug, long update_interval_us) {
-    return nethogsmonitor_loop_devices(cb, filter, 0, NULL, false, to_ms, debug, update_interval_us);
+
+
+int nethogsmonitor_loop(NethogsMonitorCallback cb, char *filter, int to_ms, long update_interval_us, bool debug) {
+    return nethogsmonitor_loop_devices_pids(cb, filter, 0, NULL, false, to_ms, 0, NULL, update_interval_us, debug);
+}
+
+int nethogsmonitor_loop_pids(NethogsMonitorCallback cb, char *filter, int to_ms, int pidc, int *pid_list, long update_interval_us, bool debug) {
+    return nethogsmonitor_loop_devices_pids(cb, filter, 0, NULL, false, to_ms, pidc, pid_list, update_interval_us, debug);
 }
 
 int nethogsmonitor_loop_devices(NethogsMonitorCallback cb, char *filter,
-                                int devc, char **devicenames, bool all, int to_ms, bool debug, long update_interval_us) {
+                                int devc, char **devicenames, bool all, int to_ms, long update_interval_us, bool debug) {
+    return nethogsmonitor_loop_devices_pids(cb, filter, devc, devicenames, all, to_ms, 0, NULL, update_interval_us, debug);                              
+}
+
+int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
+                                int devc, char **devicenames, bool all, int to_ms, int pidc, int *pid_list, long update_interval_us, bool debug) {
+  
+  if (pidc > 0){
+    if (_debug){
+      for (int i = 0; i < pidc; i++)
+        fprintf(stdout, "PID that will be monitored %d\n", pid_list[i] );
+    }
+  }
+  
   _debug = debug;
   if (update_interval_us > 0){
     monitor_refresh_delay = update_interval_us;
@@ -341,13 +375,10 @@ int nethogsmonitor_loop_devices(NethogsMonitorCallback cb, char *filter,
     //if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
     if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
       monitor_last_refresh_time = now;
-      nethogsmonitor_handle_update(cb);
+      nethogsmonitor_handle_update(cb, pidc, pid_list);
     }
 
     if (!packets_read) {
-      if (_debug){
-        fprintf(stdout, "Waiting for next trigger\n");
-      }
       if (!wait_for_next_trigger()) {
         break;
       }
