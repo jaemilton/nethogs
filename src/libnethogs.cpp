@@ -374,6 +374,10 @@ int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
     //if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
     if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
       monitor_last_refresh_time = now;
+      if (_debug)
+      {
+        fprintf(stdout, "starting nethogsmonitor_handle_update\n");
+      }
       nethogsmonitor_handle_update(cb, pidc, pid_list);
     }
 
