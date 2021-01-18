@@ -79,7 +79,7 @@ static bool wait_for_next_trigger() {
 
 bool selected(int pidc, int *pid_list, int pid) {
   if (pidc == 0)
-    return false;
+    return true;
 
   for (int i = 0; i < pidc; i++)
     if (pid_list[i] == pid)
@@ -206,8 +206,7 @@ static void nethogsmonitor_handle_update(NethogsMonitorCallback cb, int pidc, in
             (curproc->getVal() != unknowntcp) &&
             (curproc->getVal() != unknownudp) && 
             (curproc->getVal() != unknownip)
-          ) ||
-          selected(pidc, pid_list, curproc->getVal()->pid)
+          ) 
         ) {
       if (DEBUG)
         std::cout << "PROC: Deleting process\n";
@@ -261,19 +260,18 @@ static void nethogsmonitor_handle_update(NethogsMonitorCallback cb, int pidc, in
 
         data.device_name = curproc->getVal()->devicename;
 
-  #define NHM_UPDATE_ONE_FIELD(TO, FROM)                                         \
-    if ((TO) != (FROM)) {                                                        \
-      TO = FROM;                                                                 \
-      data_change = true;                                                        \
-    }
+#define NHM_UPDATE_ONE_FIELD(TO, FROM)                                         \
+        if ((TO) != (FROM)) {                                                        \
+          TO = FROM;                                                                 \
+          data_change = true;                                                        \
+        }
 
         NHM_UPDATE_ONE_FIELD(data.uid, uid)
         NHM_UPDATE_ONE_FIELD(data.sent_bytes, sent_bytes)
         NHM_UPDATE_ONE_FIELD(data.recv_bytes, recv_bytes)
         NHM_UPDATE_ONE_FIELD(data.sent_kbs, sent_kbs)
         NHM_UPDATE_ONE_FIELD(data.recv_kbs, recv_kbs)
-
-  #undef NHM_UPDATE_ONE_FIELD
+#undef NHM_UPDATE_ONE_FIELD
 
         if (data_change) {
           (*cb)(NETHOGS_APP_ACTION_SET, &data);
