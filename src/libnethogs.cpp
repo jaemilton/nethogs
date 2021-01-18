@@ -103,6 +103,8 @@ static int nethogsmonitor_init(int devc, char **devicenames, bool all,
     }
 
     char errbuf[PCAP_ERRBUF_SIZE];
+    fprintf(stdout, "Packet buffer timeout set to %s\n", to_ms);
+    
     dp_handle *newhandle = dp_open_live(current_dev->name, BUFSIZ, promiscuous,
                                         to_ms, filter, errbuf);
     if (newhandle != NULL) {
