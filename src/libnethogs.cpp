@@ -379,7 +379,7 @@ int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
       monitor_last_refresh_time = curtime.tv_usec;
       if (_debug)
       {
-        fprintf(stdout, "now=%ld, monitor_last_refresh_time=%ld, monitor_refresh_delay=%ld, curtime.tv_usec=%ld\n", now, monitor_last_refresh_time, monitor_refresh_delay);
+        fprintf(stdout, "now=%ld, monitor_last_refresh_time=%ld, monitor_refresh_delay=%ld, curtime.tv_usec=%ld\n", now, monitor_last_refresh_time, monitor_refresh_delay, curtime.tv_usec);
       }
       nethogsmonitor_handle_update(cb, pidc, pid_list);
     }
