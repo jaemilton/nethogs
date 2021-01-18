@@ -27,7 +27,7 @@ static NethogsRecordMap monitor_record_map;
 
 //static int monitor_refresh_delay = 1;
 //static time_t monitor_last_refresh_time = 0;
-static long int monitor_refresh_delay = 10000;
+static long monitor_refresh_delay = 50000;
 static __suseconds_t monitor_last_refresh_time = 0;
 
 // selectable file descriptors for the main loop
