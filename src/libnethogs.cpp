@@ -320,7 +320,7 @@ int nethogsmonitor_loop_devices(NethogsMonitorCallback cb, char *filter,
 
 int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
                                 int devc, char **devicenames, bool all, int to_ms, int pidc, int *pid_list, long update_interval_us, bool debug) {
-  
+  _debug = debug;
   if (pidc > 0){
     if (_debug){
       for (int i = 0; i < pidc; i++)
@@ -328,7 +328,6 @@ int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
     }
   }
   
-  _debug = debug;
   if (update_interval_us > 0){
     monitor_refresh_delay = update_interval_us;
     if (_debug){
