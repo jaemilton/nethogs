@@ -17,6 +17,7 @@ extern "C" {
 #define NETHOGS_STATUS_OK 0
 #define NETHOGS_STATUS_FAILURE 1
 #define NETHOGS_STATUS_NO_DEVICE 2
+#define TIME_US(sec, us) ((sec * 1000000) + us)
 
 typedef struct NethogsMonitorRecord {
   int record_id;
