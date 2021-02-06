@@ -28,7 +28,7 @@ static NethogsRecordMap monitor_record_map;
 //static int monitor_refresh_delay = 1;
 //static time_t monitor_last_refresh_time = 0;
 static bool _debug = false;
-static int monitor_refresh_delay = 100000;
+static long monitor_refresh_delay_usec = 1000000;
 static __U64_TYPE monitor_last_refresh_time = 0;
 
 // selectable file descriptors for the main loop
@@ -63,7 +63,7 @@ static bool wait_for_next_trigger() {
       FD_SET(fd, &pc_loop_fd_set);
     }
     //timeval timeout = {monitor_refresh_delay, 0};
-    timeval timeout = {0, monitor_refresh_delay};
+    timeval timeout = {0, monitor_refresh_delay_usec};
     if (select(nfds, &pc_loop_fd_set, 0, 0, &timeout) != -1) {
       if (FD_ISSET(self_pipe.first, &pc_loop_fd_set)) {
         return false;
@@ -332,9 +332,9 @@ int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
   }
   
   if (update_interval_us > 0){
-    monitor_refresh_delay = update_interval_us;
+    monitor_refresh_delay_usec = update_interval_us;
     if (_debug){
-      fprintf(stdout, "Refresh delay = %d microseconds\n", monitor_refresh_delay);
+      fprintf(stdout, "Refresh delay = %ld microseconds\n", monitor_refresh_delay_usec);
     }
   }
   if (monitor_run_flag) {
@@ -372,14 +372,14 @@ int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
 
     //time_t const now = ::time(NULL);
     gettimeofday(&curtime, NULL);
-    __U64_TYPE now = TIME_US(curtime.tv_sec, curtime.tv_usec);
+    __U64_TYPE now = TIME_IN_USEC(curtime);
 
     if (now < monitor_last_refresh_time){
       monitor_last_refresh_time = 0;
     }
 
     //if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
-    if ((monitor_last_refresh_time + monitor_refresh_delay) <= now) {
+    if ((monitor_last_refresh_time + monitor_refresh_delay_usec) <= now) {
       monitor_last_refresh_time = now;
       nethogsmonitor_handle_update(cb, pidc, pid_list);
     }
