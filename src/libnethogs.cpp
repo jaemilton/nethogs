@@ -333,9 +333,7 @@ int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
   
   if (update_interval_us >= 0){
     monitor_refresh_delay_usec = update_interval_us;
-    if (_debug){
-      fprintf(stdout, "Refresh delay = %ld microseconds\n", monitor_refresh_delay_usec);
-    }
+    fprintf(stdout, "Refresh delay = %ld microseconds\n", monitor_refresh_delay_usec);
   }
   if (monitor_run_flag) {
     return NETHOGS_STATUS_FAILURE;
@@ -370,14 +368,16 @@ int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
       current_handle = current_handle->next;
     }
 
+    //time_t const now = ::time(NULL);
+    gettimeofday(&curtime, NULL);
+
     if (monitor_refresh_delay_usec == 0)
     {
       nethogsmonitor_handle_update(cb, pidc, pid_list);
     }
     else
     {
-      //time_t const now = ::time(NULL);
-      gettimeofday(&curtime, NULL);
+      
       __U64_TYPE now = TIME_IN_USEC(curtime);
 
       if (now < monitor_last_refresh_time){
