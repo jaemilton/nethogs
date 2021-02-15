@@ -370,19 +370,27 @@ int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
       current_handle = current_handle->next;
     }
 
-    //time_t const now = ::time(NULL);
-    gettimeofday(&curtime, NULL);
-    __U64_TYPE now = TIME_IN_USEC(curtime);
-
-    if (now < monitor_last_refresh_time){
-      monitor_last_refresh_time = 0;
-    }
-
-    //if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
-    if ((monitor_last_refresh_time + monitor_refresh_delay_usec) <= now) {
-      monitor_last_refresh_time = now;
+    if (monitor_refresh_delay_usec == 0)
+    {
       nethogsmonitor_handle_update(cb, pidc, pid_list);
     }
+    else
+    {
+      //time_t const now = ::time(NULL);
+      gettimeofday(&curtime, NULL);
+      __U64_TYPE now = TIME_IN_USEC(curtime);
+
+      if (now < monitor_last_refresh_time){
+        monitor_last_refresh_time = 0;
+      }
+
+      //if (monitor_last_refresh_time + monitor_refresh_delay <= now) {
+      if ((monitor_last_refresh_time + monitor_refresh_delay_usec) <= now) {
+        monitor_last_refresh_time = now;
+        nethogsmonitor_handle_update(cb, pidc, pid_list);
+      }
+    }
+   
    
 
     if (!packets_read) {
