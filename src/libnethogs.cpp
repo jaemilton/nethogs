@@ -331,7 +331,7 @@ int nethogsmonitor_loop_devices_pids(NethogsMonitorCallback cb, char *filter,
     }
   }
   
-  if (update_interval_us > 0){
+  if (update_interval_us >= 0){
     monitor_refresh_delay_usec = update_interval_us;
     if (_debug){
       fprintf(stdout, "Refresh delay = %ld microseconds\n", monitor_refresh_delay_usec);
